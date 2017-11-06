@@ -10,7 +10,13 @@
 --          Sumit Chopra <spchopra@fb.com>
 --          Jason Weston <jase@fb.com>
 
--- Script to build the dictionary
+--[[
+      Build torch serialized version of a dictionary file.
+      Options
+        -inf  The input dictionary. []
+        -outf The output directory. []
+--]]
+
 local utils = require('summary/util')
 
 cmd = torch.CmdLine()

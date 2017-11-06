@@ -33,6 +33,18 @@ cmd:option('-outArticleDirectory', '', 'The output directory.')
 
 opt = cmd:parse(arg)
 
+--[[
+      The Counter Data Structure
+      {
+          nsents :- Represents the total number of sentences in this file. (int)
+          line_lengths :- stores the total number of lines of a specific length (dict)
+          aligned_lengths :- Stores the lengths of every sentence according to index
+          bucket_words :- Basically measures the number of words that belong to sentence of a particular length.
+                          The stop word is also included in it (for every sentence).
+          max_length :- not being used right now. #TODO, should be removed
+      }
+
+--]]
 local function count(file, aligned_lengths, pad)
    -- Count up properties of the input file.
    local f = io.open(file, 'r')
@@ -91,6 +103,7 @@ local function build_article_matrices(dict, file, nsents, line_lengths)
       local line = utils.string_split(true_l, " ")
       local length = #line
       local nbin = of_length[length]
+      -- For every word in the given line
       for j = 1, #line do
          local index = dict.symbol_to_index[line[j]] or 1
          --assert(index ~= nil)
@@ -104,6 +117,13 @@ local function build_article_matrices(dict, file, nsents, line_lengths)
    return mat, pos
 end
 
+--[[
+      1.) The aligned_lengths parameter is from the articles counter.
+      2.) The bucket_words param. is from the titles counter.
+      3.) #TODO, nsent and nline seem to be redundant. Only one can be used.
+      4.) pos matrix is not being used. #TODO Remove it.
+
+--]]
 
 local function build_title_matrices(dict, file, aligned_lengths,
                                     bucket_sizes, window)
@@ -124,8 +144,8 @@ local function build_title_matrices(dict, file, aligned_lengths,
    -- Initialize.
    for length, count in pairs(bucket_sizes) do
       mat[length] = torch.zeros(count, 3):long()
-      sent_of_length[length] = 1
-      words_of_length[length] = 1
+      sent_of_length[length] = 1 -- Required for the sentence lengths.
+      words_of_length[length] = 1 -- Required for bucket words
       ngram[length] = torch.zeros(count, window):long()
    end
 
@@ -148,11 +168,18 @@ local function build_title_matrices(dict, file, aligned_lengths,
          local nword = words_of_length[aligned_length]
          local index = dict.symbol_to_index[line[j]] or 1
 
+         --[[
+              1.) Eg:- There maybe 2 sentences of length 11 and in all they may contain 9 words.
+              2.) We consider these words one by one.
+              3.) index is that individual word's index in the dictionary.
+              4.) Then we specify the sentence this word belongs to.
+              5.) Finally, we have the position in the sentence to which this word belongs.
+         --]]
          mat[aligned_length][nword][1] = index
          mat[aligned_length][nword][2] = sent_of_length[aligned_length]
          mat[aligned_length][nword][3] = j
 
-         -- Move the window forward.
+         -- Move the window forward. The window is always considered backwards including the current word. 
          for w = 1, window-1 do
             ngram[aligned_length][nword][w] = last[w]
             last[w] = last[w+1]
@@ -179,7 +206,7 @@ local function main()
 
    -- Construct a rectangular word matrix.
    local word_mat, offset_mat =
-      build_article_matrices(dict, opt.inArticleFile,
+      ls (dict, opt.inArticleFile,
                              counter.nsents, counter.line_lengths)
    torch.save(opt.outArticleDirectory .. '/word.mat.torch', word_mat)
    torch.save(opt.outArticleDirectory .. '/offset.mat.torch', offset_mat)

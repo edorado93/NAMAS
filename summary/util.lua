@@ -27,7 +27,7 @@ function util.shuffleTable(t)
     end
 end
 
-
+-- Finds out and add all occurences of the character c in s to the table t and return
 function util.string_split(s, c)
    if c==nil then c=' ' end
    local t={}
