@@ -13,11 +13,6 @@
 import sys
 #@lint-avoid-python-3-compatibility-imports
 
-def get_words(parse):
-    return [w.strip(")")
-            for w in parse.split()
-            if w[-1] == ')']
-
 for l in open(sys.argv[1]):
     splits = l.strip().split("\t")
     if len(splits) != 4:
@@ -47,6 +42,8 @@ for l in open(sys.argv[1]):
                  'attention', 'ny###', 'overline', 'embargoed', 'ap', 'gmt',
                  'adds', 'embargo',
                  'urgent', '?', ' i ', ' : ', ' - ', ' by ', '-lrb-', '-rrb-']
+
+    # Skipping for any bad words in the title.
     if any((bad in title.lower()
             for bad in bad_words)):
         continue

@@ -18,11 +18,16 @@ title_words = Counter()
 article_words = Counter()
 limit = int(sys.argv[3])
 
+"""
+    Dictionary with title words and article words having frequency >=5
+"""
+
 for l in open(sys.argv[1]):
     splits = l.strip().split("\t")
     if len(splits) != 4:
         continue
     title_parse, article_parse, title, article = l.strip().split("\t")
+    # Take out the frequencies of the individual words
     title_words.update(title.lower().split())
     article_words.update(article.lower().split())
 

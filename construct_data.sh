@@ -32,15 +32,17 @@ echo "Step 5: Construct title-article files."
 python2.7 $SCRIPTS/pull.py trg_lc $WORK/train.title.dict   < $WORK/train.data.filter.txt > $WORK/train.title.txt
 python2.7 $SCRIPTS/pull.py src_lc $WORK/train.article.dict < $WORK/train.data.filter.txt > $WORK/train.article.txt
 
+echo "----> Done constructing title-article files on the training data"
 python2.7 $SCRIPTS/pull.py trg_lc $WORK/train.title.dict   < $WORK/valid.data.txt > $WORK/valid.title.txt
 python2.7 $SCRIPTS/pull.py src_lc $WORK/train.article.dict < $WORK/valid.data.txt > $WORK/valid.article.txt
 
-python2.7 $SCRIPTS/pull.py trg_lc $WORK/train.title.dict   < $WORK/valid.data.filter.txt > $WORK/valid.title.filter.txt
-python2.7 $SCRIPTS/pull.py src_lc $WORK/train.article.dict < $WORK/valid.data.filter.txt > $WORK/valid.article.filter.txt
-
+echo "----> Done constructing title-article files on the validation data"
 python2.7 $SCRIPTS/pull.py trg_lc $WORK/train.title.dict   < $WORK/test.data.txt > $WORK/test.title.txt
 python2.7 $SCRIPTS/pull.py src_lc $WORK/train.article.dict < $WORK/test.data.txt > $WORK/test.article.txt
 
+echo "----> Done constructing title-article files on the test data"
+python2.7 $SCRIPTS/pull.py trg_lc $WORK/train.title.dict   < $WORK/valid.data.filter.txt > $WORK/valid.title.filter.txt
+python2.7 $SCRIPTS/pull.py src_lc $WORK/train.article.dict < $WORK/valid.data.filter.txt > $WORK/valid.article.filter.txt
 
 echo "Step 6: Constructing torch data files."
 bash $ABS/prep_torch_data.sh $WORK

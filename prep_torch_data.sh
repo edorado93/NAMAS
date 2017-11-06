@@ -11,6 +11,7 @@ export LUA_PATH="$LUA_PATH;$ABS/?.lua"
 
 mkdir -p $OUT_DIR
 
+echo "-- Building torch serialised dictionaries."
 th $SCRIPTS/build_dict.lua -inf $DATA_DIR/train.article.dict -outf $OUT_DIR/train.article.dict.torch
 th $SCRIPTS/build_dict.lua -inf $DATA_DIR/train.title.dict   -outf $OUT_DIR/train.title.dict.torch
 
@@ -25,7 +26,7 @@ cp $OUT_DIR/train.title.dict.torch $OUT_DIR/train/title/dict
 cp $OUT_DIR/train.article.dict.torch $OUT_DIR/train/article/dict
 
 
-echo "-- Build the matrices"
+echo "-- Build the matrices."
 
 # Share the dictionary.
 th $SCRIPTS/build.lua -inArticleDictionary $OUT_DIR/train.article.dict.torch -inTitleDictionary $OUT_DIR/train.title.dict.torch -inTitleFile $DATA_DIR/valid.title.filter.txt -outTitleDirectory $OUT_DIR/valid.filter/title/ -inArticleFile $DATA_DIR/valid.article.filter.txt -outArticleDirectory $OUT_DIR/valid.filter/article/ -window $WINDOW

@@ -16,9 +16,11 @@ Pull out elements of the title-article file.
 import sys
 #@lint-avoid-python-3-compatibility-imports
 
+# The dictionary input
 words_dict = set([l.split()[0]
                   for l in open(sys.argv[2])])
 
+# Input redirection for *.data.txt eg: train.data.filter.txt
 for l in sys.stdin:
     splits = l.strip().split("\t")
     if len(splits) != 4:
@@ -32,10 +34,9 @@ for l in sys.stdin:
         words = [w if w in words_dict else "<unk>"
                  for w in article.lower().split()]
         print(" ".join(words))
-    elif sys.argv[1] == "trg_lc":
-        t = title.lower()
+    elif sys.argv[1] == "trg_lc": 
         words = [w if w in words_dict else "<unk>"
-                 for w in t.split()
+                 for w in title.lower().split()
                  if w not in ['"', "'", "''", "!", "=", "-",
                               "--", ",", "?", ".",
                               "``", "`", "-rrb-", "-llb-", "\\/"]]
