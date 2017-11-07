@@ -61,8 +61,8 @@ function encoder.build_bow_model(opt, data)
       opt.bowDim)()
 
    -- Ignore the context.
-   local ignore1 = nn.Identity()()
-   local ignore2 = nn.Identity()()
+   local ignore1 = nn.Identity()() -- Will come out as it is in the output. No modification on forward propagation
+   local ignore2 = nn.Identity()() -- Will come out as it is in the output. No modification on forward propagation
 
    -- Ignores the context and position input.
    local start = nn.SelectTable(1)({lookup, ignore1, ignore2})

@@ -36,8 +36,7 @@ local function main()
    local article_data = data.load_article(opt.articleDir)
 
    local valid_data = data.load_title(opt.validTitleDir, nil, tdata.dict)
-   local valid_article_data =
-      data.load_article(opt.validArticleDir, article_data.dict)
+   local valid_article_data = data.load_article(opt.validArticleDir, article_data.dict)
 
    -- Make main LM
    local train_data = data.init(tdata, article_data)

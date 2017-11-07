@@ -30,6 +30,8 @@ function data.load(article_dir, title_dir)
    return data.init()
 end
 
+-- http://lua-users.org/wiki/MetamethodsTutorial
+-- The __index method can also be used to track accesses to the table. One of its many use cases
 function data.init(title_data, article_data)
    local new_data = {}
    setmetatable(new_data, { __index = data })
@@ -40,8 +42,8 @@ function data.init(title_data, article_data)
 end
 
 function data:reset()
-   self.bucket_order = {}
-   for length, _ in pairs(self.title_data.target) do
+   self.bucket_order = {} -- This is an array and not a dictionary
+   for length, _ in pairs(self.title_data.target) do -- target is the first column of various lengths for the words matrix. So, it's an array of 1D tensors
       table.insert(self.bucket_order, length)
    end
    util.shuffleTable(self.bucket_order)
@@ -52,10 +54,12 @@ end
 function data:load_next_bucket()
    self.done_bucket = false
    self.bucket_index = self.bucket_index + 1
-   self.bucket = self.bucket_order[self.bucket_index]
-   self.bucket_size = self.title_data.target[self.bucket]:size(1)
+   self.bucket = self.bucket_order[self.bucket_index] -- Get the article sentence length at this index
+   self.bucket_size = self.title_data.target[self.bucket]:size(1) -- Number of sentences of the given length
    self.pos = 1
    self.aux_ptrs = self.title_data.sentences[self.bucket]:float():long()
+   -- Column Tensor -> Row Tensor -> Change dimension from 1 * C to 1000 * C and take contiguous i.e no new copy
+   -- Creates a matrix of 1000 * length with values 1-length in each row and adds 200*length to each of them
    self.positions = torch.range(1, self.bucket):view(1, self.bucket)
       :expand(1000, self.bucket):contiguous():cuda() + (200 * self.bucket)
 end
@@ -102,6 +106,7 @@ function data.load_title_dict(dname)
    return torch.load(dname .. 'dict')
 end
 
+-- ngram[0] = torch.mul(torch.rand(3, 5),100):long() Integer random Tensor
 function data.load_title(dname, shuffle, use_dict)
    local ngram = torch.load(dname .. 'ngram.mat.torch')
    local words = torch.load(dname .. 'word.mat.torch')
@@ -111,16 +116,19 @@ function data.load_title(dname, shuffle, use_dict)
    local pos_full = {}
    for length, mat in pairs(ngram) do
       if shuffle ~= nil then
+         -- :size(1) means the row in row * column
          local perm = torch.randperm(ngram[length]:size(1)):long()
-         ngram[length] = ngram[length]:index(1, perm):float():cuda()
+         -- perm gives a LongTensor eg :- [3, 1, 2]. index operation moves the 3rd index to 1st, 1st to 2nd and 2nd to 3rd.
+         -- i.e. move according to the Tensor.
+         ngram[length] = ngram[length]:index(1, perm):float():cuda() --  The cuda() function returns a CudaTensor copy.
          words[length] = words[length]:index(1, perm)
       else
          ngram[length] = ngram[length]:float():cuda()
       end
       assert(ngram[length]:size(1) == words[length]:size(1))
+      --  [{{}, 1}] means all the rows for the first column. Basically it means a[i][1] for all i
       target_full[length] = words[length][{{}, 1}]:contiguous():float():cuda()
-      sentences_full[length] =
-         words[length][{{}, 2}]:contiguous():float():cuda()
+      sentences_full[length] = words[length][{{}, 2}]:contiguous():float():cuda()
       pos_full[length] = words[length][{{}, 3}]
 
    end

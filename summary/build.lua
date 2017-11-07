@@ -179,7 +179,7 @@ local function build_title_matrices(dict, file, aligned_lengths,
          mat[aligned_length][nword][2] = sent_of_length[aligned_length]
          mat[aligned_length][nword][3] = j
 
-         -- Move the window forward. The window is always considered backwards including the current word. 
+         -- Move the window forward. The window is always considered backwards including the current word.
          for w = 1, window-1 do
             ngram[aligned_length][nword][w] = last[w]
             last[w] = last[w+1]
@@ -206,7 +206,7 @@ local function main()
 
    -- Construct a rectangular word matrix.
    local word_mat, offset_mat =
-      ls (dict, opt.inArticleFile,
+      build_article_matrices(dict, opt.inArticleFile,
                              counter.nsents, counter.line_lengths)
    torch.save(opt.outArticleDirectory .. '/word.mat.torch', word_mat)
    torch.save(opt.outArticleDirectory .. '/offset.mat.torch', offset_mat)
