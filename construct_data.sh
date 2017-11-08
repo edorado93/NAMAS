@@ -13,9 +13,9 @@ find $AGIGA/data -name "*.xml.gz" | parallel --gnu --progress -j $THREADS python
 
 echo "Step 2: Compile the data into train/dev/test."
 cd $WORK
-cat $SPLITS/train.splits | xargs cat > train.data.txt
-cat $SPLITS/valid.splits | xargs cat > valid.data.txt
-cat $SPLITS/test.splits  | xargs cat > test.data.txt
+cat $SPLITS/train.splits | sed 's/^/xml\//'  | xargs cat > train.data.txt
+cat $SPLITS/valid.splits | sed 's/^/xml\//'  | xargs cat > valid.data.txt
+cat $SPLITS/test.splits  | sed 's/^/xml\//'  | xargs cat > test.data.txt
 
 
 echo "Step 3: Basic filtering on train/dev."
