@@ -23,7 +23,7 @@ cmd = torch.CmdLine()
 
 beam.addOpts(cmd)
 
-cutorch.setDevice(2)
+cutorch.setDevice(1)
 
 cmd:option('-modelFilename', '', 'Model to test.')
 cmd:option('-inputf',        '', 'Input article files. ')
@@ -84,7 +84,10 @@ local function main()
       local sbeam = beam.init(opt, mlp.mlp, mlp.encoder_model,
                               dict_map, tdict)
       local results = sbeam:generate(article, len)
-
+      --print("********************")
+      --io.write("Original: ", line)
+      --print("")
+      --io.write("Summary is: ")
       if not opt.nbest then
          if  #results ==  0 then
             io.write("*FAIL*")
