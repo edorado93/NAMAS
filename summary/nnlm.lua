@@ -13,7 +13,6 @@
 -- Ngram neural language model with auxiliary model
 require('nn')
 require('nngraph')
-require('fbnn')
 require('cunn')
 require('sys')
 local utils = require('summary.util')
@@ -31,6 +30,12 @@ function nnlm.addOpts()
    cmd:option('-learningRate', 0.1, "SGD learning rate.")
 end
 
+function nnlm.create_empty_lm(opt)
+  local new_mlp = {}
+  setmetatable(new_mlp, { __index = nnlm })
+  new_mlp.opt = opt
+  return new_mlp
+end
 
 function nnlm.create_lm(opt, dict, encoder, encoder_size, encoder_dict)
    local new_mlp = {}
@@ -40,6 +45,7 @@ function nnlm.create_lm(opt, dict, encoder, encoder_size, encoder_dict)
    new_mlp.encoder_dict = encoder_dict
    new_mlp.encoder_model = encoder
    new_mlp.window = opt.window
+   new_mlp.epochs = opt.epochs
    if encoder ~= nil then
       new_mlp:build_mlp(encoder, encoder_size)
    end
@@ -161,7 +167,8 @@ function nnlm:train(data, valid_data)
    -- Best loss seen yet.
    self.last_valid_loss = 1e9
    -- Train
-   for epoch = 1, self.opt.epochs do
+   print("Starting training for " .. self.epochs .. " epochs")
+   for epoch = 1, self.epochs do
       data:reset()
       self:renorm_tables()
       self:run_valid(valid_data)
@@ -196,6 +203,16 @@ function nnlm:train(data, valid_data)
 
          -- Logging
          if batch % self.opt.printEvery == 1 then
+
+            -- More than 23:15 hours into execution, reschedule it after saving the current state
+            if os.clock() - self.start >= 60 then
+              print("Script is done for the day. Will reschedulue")
+              if data:is_done() and (epoch == self.opt.epochs) then
+                self:save(self.opt.modelFilename)
+                os.exit(99)
+              end
+            end
+
             print(string.format(
                      "[Loss: %f Epoch: %d Position: %d Rate: %f Time: %f]",
                      loss / ((batch - last_batch) * self.opt.miniBatchSize),
@@ -228,6 +245,9 @@ end
 function nnlm:load(fname)
     local new_self = torch.load(fname)
     for k, v in pairs(new_self) do
+      if k == 'epochs' then
+        v = opt.epochs - v
+      end
        if k ~= 'opt' then
           self[k] = v
        end
@@ -235,5 +255,8 @@ function nnlm:load(fname)
     return true
 end
 
+function nnlm:set_start_time(t)
+  self.start = t
+end
 
 return nnlm

@@ -30,21 +30,39 @@ nnlm.addOpts(cmd)
 
 opt = cmd:parse(arg)
 
+function is_rescheduled(name)
+   local f=io.open(name,"r")
+   if f~=nil then io.close(f) return true else return false end
+end
+
 local function main()
-   -- Load in the data.
-   local tdata = data.load_title(opt.titleDir, true)
-   local article_data = data.load_article(opt.articleDir)
+    local mlp = nil
+    local start =  os.clock()
 
-   local valid_data = data.load_title(opt.validTitleDir, nil, tdata.dict)
-   local valid_article_data = data.load_article(opt.validArticleDir, article_data.dict)
 
-   -- Make main LM
-   local train_data = data.init(tdata, article_data)
-   local valid = data.init(valid_data, valid_article_data)
-   local encoder_mlp = encoder.build(opt, train_data)
-   local mlp = nnlm.create_lm(opt, tdata.dict, encoder_mlp,
-                              opt.bowDim, article_data.dict)
+    local tdata = data.load_title(opt.titleDir, true)
+    local article_data = data.load_article(opt.articleDir)
 
+    local valid_data = data.load_title(opt.validTitleDir, nil, tdata.dict)
+    local valid_article_data = data.load_article(opt.validArticleDir, article_data.dict)
+
+
+    local train_data = data.init(tdata, article_data)
+    local valid = data.init(valid_data, valid_article_data)
+
+    if is_rescheduled(opt.modelFilename) then
+      print("Resechuled job. Running again after loading the model from .. " .. opt.modelFilename)
+      mlp = nnlm.create_empty_lm(opt)
+      mlp:load(opt.modelFilename)
+      print(string.format("Time taken for loading the model: %.2f\n", os.clock() - start))
+    else
+      print("Running the training from scratch")
+      local encoder_mlp = encoder.build(opt, train_data)
+      mlp = nnlm.create_lm(opt, tdata.dict, encoder_mlp,
+                                 opt.bowDim, article_data.dict)
+    end
+
+   mlp:set_start_time(start)
    mlp:train(train_data, valid)
 end
 
