@@ -14,14 +14,16 @@ th -i $ABS/summary/train.lua -titleDir  $OUT_DIR/train/title/ \
  -articleDir  $OUT_DIR/train/article/ \
  -modelFilename  $MDL_DIR/$2 \
  -miniBatchSize  64 \
- -embeddingDim  64 \
+ -embeddingDim  200 \
  -bowDim  200 \
- -hiddenSize  64 \
- -epochs  20 \
- -learningRate 0.1 \
+ -hiddenSize  400 \
+ -epochs  15 \
+ -learningRate 0.05 \
  -validArticleDir  $OUT_DIR/valid.filter/article/ \
  -validTitleDir  $OUT_DIR/valid.filter/title/ \
  -window  $WINDOW \
  -printEvery   100 \
- -encoderModel  "attenbow" \
+ -encoderModel  "bow" \
  -attenPool  5 \
+
+exit $?
