@@ -173,7 +173,7 @@ function nnlm:train(data, valid_data)
       data:reset()
       self:renorm_tables()
 
-      """ Run's the validation, adjusts the learning rate and saves the model """
+      --- Run's the validation, adjusts the learning rate and saves the model
       self:run_valid(valid_data, epoch)
 
       -- Loss for the epoch.
@@ -192,7 +192,7 @@ function nnlm:train(data, valid_data)
          local err = self.criterion:forward(out, target) * target:size(1)
          local deriv = self.criterion:backward(out, target)
 
-         """ Backpropagation and parameters adjustment """
+         --- Backpropagation and parameters adjustment
          if not utils.isnan(err) then
             loss = loss + err
             epoch_loss = epoch_loss + err
