@@ -45,7 +45,7 @@ function nnlm.create_lm(opt, dict, encoder, encoder_size, encoder_dict)
    new_mlp.encoder_dict = encoder_dict
    new_mlp.encoder_model = encoder
    new_mlp.window = opt.window
-   new_mlp.epochs = opt.epochs
+   new_mlp.epochs = 1
    if encoder ~= nil then
       new_mlp:build_mlp(encoder, encoder_size)
    end
@@ -147,7 +147,7 @@ function nnlm:renorm_tables()
 end
 
 
-function nnlm:run_valid(valid_data)
+function nnlm:run_valid(valid_data, current_epoch)
    -- Run validation.
    if valid_data ~= nil then
       local cur_valid_loss = self:validation(valid_data)
@@ -158,6 +158,7 @@ function nnlm:run_valid(valid_data)
       self.last_valid_loss = cur_valid_loss
    end
 
+   self.epochs = current_epoch 
    -- Save the model.
    self:save(self.opt.modelFilename)
 end
@@ -168,10 +169,12 @@ function nnlm:train(data, valid_data)
    self.last_valid_loss = 1e9
    -- Train
    print("Starting training for " .. self.epochs .. " epochs")
-   for epoch = 1, self.epochs do
+   for epoch = self.epochs, self.opt.epochs do
       data:reset()
       self:renorm_tables()
-      self:run_valid(valid_data)
+
+      """ Run's the validation, adjusts the learning rate and saves the model """
+      self:run_valid(valid_data, epoch)
 
       -- Loss for the epoch.
       local epoch_loss = 0
@@ -189,6 +192,7 @@ function nnlm:train(data, valid_data)
          local err = self.criterion:forward(out, target) * target:size(1)
          local deriv = self.criterion:backward(out, target)
 
+         """ Backpropagation and parameters adjustment """
          if not utils.isnan(err) then
             loss = loss + err
             epoch_loss = epoch_loss + err
@@ -206,9 +210,9 @@ function nnlm:train(data, valid_data)
 
             -- More than 23:15 hours into execution, reschedule it after saving the current state
             if os.clock() - self.start >= 60 then
-              print("Script is done for the day. Will reschedulue")
+              print("Script is done for the day. Current epoch executing was " .. epoch)
               if data:is_done() and (epoch == self.opt.epochs) then
-                self:save(self.opt.modelFilename)
+                --self:save(self.opt.modelFilename)
                 os.exit(99)
               end
             end
